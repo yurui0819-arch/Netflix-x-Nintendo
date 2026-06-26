@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Story Quest — Netflix × Nintendo 提案簡報</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Inter:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --black:   #0A0A12;
+  --deep:    #0F0F1E;
+  --navy:    #121228;
+  --red:     #E50914;
+  --red-dim: rgba(229,9,20,.18);
+  --red-glow:rgba(229,9,20,.35);
+  --nintendo:#E4000F;
+  --gold:    #FFD700;
+  --cream:   #EDE8F5;
+  --muted:   #7B768E;
+  --purple:  #3B1F6E;
+  --purple-light: #6B4EAE;
+  --white:   #F8F5FF;
+  --green:   #1DB954;
+}
+html, body { height: 100%; overflow: hidden; }
+body { font-family: 'Inter', sans-serif; background: var(--black); color: var(--cream); }
+
+/* ── TOPBAR ── */
+.topbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: .85rem 2.5rem;
+  background: rgba(10,10,18,.94);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(229,9,20,.18);
+}
+.topbar-logo { display: flex; align-items: center; gap: .8rem; flex-shrink: 0; }
+.logo-badge {
+  display: flex; align-items: center; gap: .4rem;
+  font-family: 'DM Mono', monospace; font-size: .72rem;
+  letter-spacing: .06em;
+}
+.badge-n { color: var(--red); font-weight: 700; font-size: .9rem; }
+.badge-x { color: var(--muted); }
+.badge-ni { color: var(--nintendo); font-weight: 700; font-size: .9rem; }
+.logo-name { font-family: 'Playfair Display', serif; font-size: .88rem; color: var(--cream); font-style: italic; }
+.slide-tabs { display: flex; gap: .2rem; flex-wrap: nowrap; overflow-x: auto; }
+.tab-btn {
+  background: none; border: none; cursor: pointer;
+  font-family: 'DM Mono', monospace; font-size: .67rem;
+  letter-spacing: .07em; color: var(--muted);
+  padding: .38rem .85rem; border-radius: 3px;
+  transition: color .2s, background .2s; white-space: nowrap;
+}
+.tab-btn:hover { color: var(--cream); }
+.tab-btn.active { color: var(--white); background: var(--red); }
+.nav-arrows { display: flex; gap: .4rem; flex-shrink: 0; }
+.arrow-btn {
+  background: var(--red-dim); border: 1px solid rgba(229,9,20,.3);
+  color: var(--red); width: 32px; height: 32px;
+  border-radius: 3px; cursor: pointer; font-size: .95rem;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .2s;
+}
+.arrow-btn:hover { background: rgba(229,9,20,.3); }
+.arrow-btn:disabled { opacity: .3; cursor: default; }
+
+/* ── PROGRESS ── */
+.progress-bar { position: fixed; bottom: 0; left: 0; right: 0; z-index: 200; height: 3px; background: rgba(229,9,20,.1); }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--red), #FF6B6B); transition: width .4s ease; }
+.slide-counter { position: fixed; bottom: 10px; right: 2.5rem; z-index: 200; font-family: 'DM Mono', monospace; font-size: .62rem; color: var(--muted); }
+
+/* ── DECK ── */
+.deck { width: 100vw; height: 100vh; position: relative; }
+.slide {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  opacity: 0; pointer-events: none;
+  transition: opacity .42s ease, transform .42s ease;
+  transform: translateX(50px);
+  overflow-y: auto;
+}
+.slide.active { opacity: 1; pointer-events: all; transform: translateX(0); }
+.slide.exit-left { opacity: 0; transform: translateX(-50px); }
+
+/* ── SLIDE HELPERS ── */
+.slide-body { flex: 1; padding: 5.5rem 2.8rem 3rem; max-width: 1120px; margin: 0 auto; width: 100%; }
+.eyebrow { font-family: 'DM Mono', monospace; font-size: .7rem; letter-spacing: .2em; text-transform: uppercase; color: var(--red); margin-bottom: .5rem; }
+.slide-title { font-family: 'Playfair Display', serif; font-size: clamp(1.9rem, 3.8vw, 3rem); font-weight: 900; color: var(--white); line-height: 1.1; margin-bottom: .8rem; }
+.slide-title em { font-style: italic; color: var(--red); }
+.slide-lead { font-size: .95rem; color: var(--muted); max-width: 700px; line-height: 1.82; margin-bottom: 2rem; }
+.divrow { width: 100%; height: 1px; background: rgba(229,9,20,.12); margin: 1.6rem 0; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.6rem; }
+.three-col { display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; }
+.four-col { display: grid; grid-template-columns: repeat(4,1fr); gap: 1rem; }
+.section-hed { font-family: 'Playfair Display', serif; font-size: 1.05rem; color: var(--white); margin-bottom: .9rem; font-weight: 700; }
+
+/* ── BACKGROUNDS ── */
+#s0 {
+  background:
+    radial-gradient(ellipse 80% 60% at 75% 45%, rgba(229,9,20,.18) 0%, transparent 65%),
+    radial-gradient(ellipse 60% 60% at 20% 75%, rgba(59,31,110,.35) 0%, transparent 65%),
+    var(--black);
+  justify-content: center; align-items: center;
+}
+#s1, #s3, #s5, #s7 { background: var(--deep); }
+#s2, #s4, #s6 { background: var(--navy); }
+
+/* ── COVER ── */
+.cover-inner { max-width: 1120px; width: 100%; padding: 2rem 2.8rem; display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
+.cover-eyebrow { font-family: 'DM Mono', monospace; font-size: .72rem; letter-spacing: .2em; color: var(--red); text-transform: uppercase; margin-bottom: .8rem; }
+.cover-title { font-family: 'Playfair Display', serif; font-size: clamp(3rem, 6vw, 5.5rem); font-weight: 900; color: var(--white); line-height: 1.04; }
+.cover-title em { font-style: italic; color: var(--red); }
+.cover-sub { margin-top: 1.2rem; font-size: .98rem; color: var(--muted); line-height: 1.82; max-width: 440px; }
+.cover-meta { margin-top: 1.8rem; display: flex; gap: 1rem; flex-wrap: wrap; }
+.meta-pill { font-family: 'DM Mono', monospace; font-size: .65rem; letter-spacing: .08em; color: var(--muted); padding: .3rem .8rem; border: 1px solid rgba(229,9,20,.25); border-radius: 2px; }
+.cover-cta { margin-top: 2rem; }
+.btn-start {
+  background: var(--red); color: var(--white);
+  border: none; cursor: pointer;
+  padding: .9rem 2.2rem; font-size: .9rem; font-weight: 600;
+  letter-spacing: .06em; border-radius: 3px;
+  transition: background .2s, transform .15s;
+  display: inline-flex; align-items: center; gap: .5rem;
+}
+.btn-start:hover { background: #ff1a27; transform: translateY(-2px); }
+
+/* ── CONSOLE GRAPHIC ── */
+.console-wrap { display: flex; justify-content: center; align-items: center; }
+.console-svg-wrap { width: min(380px, 85vw); filter: drop-shadow(0 20px 60px rgba(229,9,20,.25)); }
+
+/* ── CARDS ── */
+.card {
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(229,9,20,.12);
+  padding: 1.6rem 1.5rem;
+  border-radius: 4px;
+  transition: background .2s, border-color .2s;
+}
+.card:hover { background: rgba(229,9,20,.07); border-color: rgba(229,9,20,.3); }
+.card-num { font-family: 'Playfair Display', serif; font-style: italic; font-size: 2.8rem; color: rgba(229,9,20,.18); line-height: 1; margin-bottom: .4rem; }
+.card h3 { font-size: .92rem; font-weight: 600; color: var(--white); margin-bottom: .5rem; }
+.card p { font-size: .83rem; color: var(--muted); line-height: 1.72; }
+.card .tag { font-family: 'DM Mono', monospace; font-size: .64rem; color: var(--purple-light); letter-spacing: .08em; margin-bottom: .4rem; }
+
+/* ── STAT ROW ── */
+.stat-row { display: flex; gap: 2.5rem; flex-wrap: wrap; margin-bottom: 1.8rem; }
+.stat-num { font-family: 'Playfair Display', serif; font-size: 2.5rem; color: var(--red); line-height: 1; }
+.stat-label { font-size: .75rem; color: var(--muted); margin-top: .2rem; line-height: 1.4; }
+
+/* ── CALLOUT ── */
+.callout { border-left: 3px solid var(--red); padding: 1.2rem 1.6rem; background: var(--red-dim); margin-bottom: 1.2rem; border-radius: 0 4px 4px 0; }
+.callout h4 { font-family: 'Playfair Display', serif; font-size: .98rem; color: #ff6b6b; margin-bottom: .35rem; }
+.callout p { font-size: .85rem; color: var(--cream); line-height: 1.75; }
+.callout.purple { border-left-color: var(--purple-light); background: rgba(107,78,174,.12); }
+.callout.purple h4 { color: var(--purple-light); }
+.callout.green { border-left-color: var(--green); background: rgba(29,185,84,.08); }
+.callout.green h4 { color: var(--green); }
+
+/* ── PAIN LIST ── */
+.pain-item { display: flex; gap: .8rem; padding: .85rem 1rem; background: rgba(255,255,255,.035); border-left: 2px solid var(--red); margin-bottom: .6rem; border-radius: 0 3px 3px 0; }
+.pain-icon { flex-shrink: 0; font-size: 1rem; }
+.pain-item p { font-size: .83rem; color: var(--cream); line-height: 1.65; }
+.pain-item strong { color: #ff8080; }
+
+/* ── FEATURE TABLE ── */
+.feature-table { width: 100%; border-collapse: collapse; }
+.feature-table th { text-align: left; font-family: 'DM Mono', monospace; font-size: .67rem; letter-spacing: .1em; color: var(--red); padding: .5rem .9rem; border-bottom: 1px solid rgba(229,9,20,.2); }
+.feature-table td { padding: .85rem .9rem; font-size: .82rem; vertical-align: top; border-bottom: 1px solid rgba(255,255,255,.05); color: var(--cream); }
+.feature-table tr:last-child td { border-bottom: none; }
+.feature-table tr:hover td { background: rgba(255,255,255,.025); }
+.feat-name { font-weight: 600; color: var(--white); }
+.feat-pain { color: var(--muted); font-size: .78rem; }
+.badge { display: inline-block; padding: .16rem .5rem; font-family: 'DM Mono', monospace; font-size: .63rem; border-radius: 2px; }
+.badge.core { background: var(--red-dim); color: #ff8080; }
+.badge.p2 { background: rgba(107,78,174,.2); color: var(--purple-light); }
+
+/* ── PERCEPTUAL MAP ── */
+.map-container { position: relative; width: 100%; aspect-ratio: 1; background: rgba(255,255,255,.025); border: 1px solid rgba(229,9,20,.15); border-radius: 4px; }
+.map-axis-h, .map-axis-v { position: absolute; background: rgba(229,9,20,.2); }
+.map-axis-h { left: 0; right: 0; top: 50%; height: 1px; }
+.map-axis-v { top: 0; bottom: 0; left: 50%; width: 1px; }
+.map-lbl { position: absolute; font-family: 'DM Mono', monospace; font-size: .58rem; letter-spacing: .1em; color: var(--muted); text-transform: uppercase; }
+.map-dot { position: absolute; border-radius: 50%; transform: translate(-50%,-50%); }
+.map-dot.hero { width: 15px; height: 15px; background: var(--red); box-shadow: 0 0 16px var(--red-glow); }
+.map-dot.other { width: 9px; height: 9px; background: var(--purple-light); opacity: .7; }
+.dot-lbl { position: absolute; font-size: .66rem; white-space: nowrap; transform: translate(-50%, calc(-50% - 13px)); color: var(--cream); font-weight: 500; }
+.dot-lbl.hero { color: var(--red); font-weight: 700; }
+
+/* ── KPI ── */
+.kpi-card { background: rgba(255,255,255,.04); border: 1px solid rgba(229,9,20,.15); padding: 1.2rem; text-align: center; border-radius: 4px; }
+.kpi-num { font-family: 'Playfair Display', serif; font-size: 1.9rem; color: var(--red); }
+.kpi-label { font-size: .72rem; color: var(--muted); margin-top: .2rem; line-height: 1.4; }
+
+/* ── METRIC BOX ── */
+.metric-box h3 { font-family: 'DM Mono', monospace; font-size: .68rem; letter-spacing: .14em; text-transform: uppercase; color: var(--purple-light); margin-bottom: .9rem; border-bottom: 1px solid rgba(107,78,174,.3); padding-bottom: .5rem; }
+.metric-item { display: flex; gap: .6rem; margin-bottom: .65rem; align-items: flex-start; }
+.metric-item::before { content: '▶'; color: var(--red); flex-shrink: 0; margin-top: .15rem; font-size: .7rem; }
+.metric-item p { font-size: .82rem; color: var(--cream); line-height: 1.6; }
+.metric-item strong { color: #ff8080; }
+
+/* ── TIMELINE ── */
+.tl-item { display: grid; grid-template-columns: 90px 1px 1fr; gap: 0 1.2rem; }
+.tl-time { font-family: 'DM Mono', monospace; font-size: .68rem; color: var(--red); text-align: right; padding: .45rem 0; }
+.tl-line { position: relative; }
+.tl-line::before { content: ''; position: absolute; top: .6rem; left: 50%; transform: translateX(-50%); width: 8px; height: 8px; border-radius: 50%; background: var(--red); }
+.tl-line::after { content: ''; position: absolute; top: 1rem; bottom: 0; left: 50%; transform: translateX(-50%); width: 1px; background: rgba(229,9,20,.2); }
+.tl-item:last-child .tl-line::after { display: none; }
+.tl-content { padding: .25rem 0 1.3rem; }
+.tl-content h4 { font-size: .88rem; font-weight: 600; color: var(--white); margin-bottom: .28rem; }
+.tl-content p { font-size: .79rem; color: var(--muted); line-height: 1.62; }
+
+/* ── SCENARIO ── */
+.scenario { display: flex; gap: 1rem; padding: 1.1rem; background: rgba(255,255,255,.03); border: 1px solid rgba(229,9,20,.1); margin-bottom: .7rem; align-items: flex-start; border-radius: 4px; }
+.scenario-icon { font-size: 1.5rem; flex-shrink: 0; }
+.scenario h4 { font-size: .88rem; font-weight: 600; color: var(--white); margin-bottom: .28rem; }
+.scenario p { font-size: .8rem; color: var(--muted); line-height: 1.65; }
+
+/* ── CONTROLLER DIAGRAM ── */
+.controller-demo { background: rgba(255,255,255,.03); border: 1px solid rgba(229,9,20,.1); padding: 1.4rem; border-radius: 4px; }
+.controller-demo h4 { font-size: .88rem; font-weight: 600; color: var(--white); margin-bottom: 1rem; }
+.ctrl-row { display: flex; gap: .7rem; flex-wrap: wrap; margin-bottom: .6rem; }
+.ctrl-btn {
+  display: flex; align-items: center; gap: .4rem;
+  background: rgba(229,9,20,.12); border: 1px solid rgba(229,9,20,.25);
+  padding: .3rem .7rem; border-radius: 3px; font-size: .78rem; color: var(--cream);
+}
+.ctrl-btn .key { font-family: 'DM Mono', monospace; font-size: .65rem; color: var(--red); font-weight: 700; }
+.ctrl-desc { font-size: .78rem; color: var(--muted); line-height: 1.6; }
+
+/* ── VISION QUOTE ── */
+.vision-quote { font-family: 'Playfair Display', serif; font-style: italic; font-size: clamp(1.1rem, 2vw, 1.55rem); color: var(--cream); line-height: 1.55; border-top: 1px solid rgba(229,9,20,.25); padding-top: 1.6rem; margin-bottom: 2rem; max-width: 820px; }
+
+/* ── VAL BOX ── */
+.val-box { background: rgba(59,31,110,.15); border: 1px solid rgba(107,78,174,.3); padding: 1.4rem; border-radius: 4px; }
+.val-box h3 { font-family: 'Playfair Display', serif; font-size: 1rem; color: var(--purple-light); margin-bottom: 1rem; }
+.val-methods { display: grid; grid-template-columns: 1fr 1fr; gap: .9rem; }
+.val-m h4 { font-size: .82rem; font-weight: 600; color: var(--cream); margin-bottom: .28rem; }
+.val-m p { font-size: .78rem; color: var(--muted); line-height: 1.6; }
+
+/* ── COMPARE TABLE ── */
+.cmp-table { width: 100%; font-size: .78rem; border-collapse: collapse; }
+.cmp-table th { font-family: 'DM Mono', monospace; font-size: .64rem; letter-spacing: .08em; color: var(--muted); padding: .5rem .5rem; text-align: center; border-bottom: 1px solid rgba(229,9,20,.15); }
+.cmp-table th:first-child { text-align: left; }
+.cmp-table td { padding: .44rem .5rem; border-bottom: 1px solid rgba(255,255,255,.04); color: var(--cream); text-align: center; }
+.cmp-table td:first-child { text-align: left; font-size: .8rem; }
+.cmp-table tr:last-child td { border-bottom: none; }
+.cmp-yes { color: var(--red); font-weight: 700; }
+.cmp-no { color: rgba(123,118,142,.5); }
+.cmp-part { color: var(--purple-light); }
+
+@media (max-width: 720px) {
+  .slide-tabs { display: none; }
+  .topbar { padding: .75rem 1rem; }
+  .slide-body { padding: 5rem 1.2rem 3rem; }
+  .cover-inner { grid-template-columns: 1fr; gap: 2.5rem; }
+  .console-svg-wrap { width: 200px; order: -1; }
+  .two-col, .three-col, .four-col { grid-template-columns: 1fr; }
+  .val-methods { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-logo">
+    <div class="logo-badge">
+      <span class="badge-n">N</span><span class="badge-x">×</span><span class="badge-ni">Nintendo</span>
+    </div>
+    <span style="color:var(--muted);font-size:.8rem;">|</span>
+    <span class="logo-name">Story Quest</span>
+  </div>
+  <div class="slide-tabs" id="tabBar"></div>
+  <div class="nav-arrows">
+    <button class="arrow-btn" id="btnPrev" onclick="go(-1)">&#8592;</button>
+    <button class="arrow-btn" id="btnNext" onclick="go(1)">&#8594;</button>
+  </div>
+</div>
+<div class="progress-bar"><div class="progress-fill" id="pFill"></div></div>
+<div class="slide-counter" id="sCount"></div>
+
+<!-- ══ S0: COVER ══ -->
+<div class="slide active" id="s0">
+  <div class="cover-inner">
+    <div>
+      <p class="cover-eyebrow">2025 跨界聯名提案簡報</p>
+      <h1 class="cover-title">你不只是<br>在<em>觀看</em><br>你在<em>決定</em></h1>
+      <p class="cover-sub">Netflix × Nintendo 聯名企劃——Story Quest（故事冒險）。把遙控器換成 Joy-Con，讓每一個觀眾都成為故事的共同創作者。</p>
+      <div class="cover-meta">
+        <span class="meta-pill">提案方：Story Quest Team</span>
+        <span class="meta-pill">對象：Netflix × Nintendo</span>
+        <span class="meta-pill">機密文件 · 2025</span>
+      </div>
+      <div class="cover-cta">
+        <button class="btn-start" onclick="go(1)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
+          開始播放
+        </button>
+      </div>
+    </div>
+    <div class="console-wrap">
+      <div class="console-svg-wrap">
+        <!-- Nintendo Switch SVG illustration -->
+        <svg viewBox="0 0 380 280" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Left Joy-Con -->
+          <rect x="10" y="55" width="68" height="170" rx="28" fill="#E4000F"/>
+          <rect x="18" y="80" width="52" height="110" rx="6" fill="rgba(0,0,0,.25)"/>
+          <!-- Left stick -->
+          <circle cx="44" cy="100" r="12" fill="rgba(255,255,255,.15)"/>
+          <circle cx="44" cy="100" r="7" fill="rgba(255,255,255,.25)"/>
+          <!-- D-pad -->
+          <rect x="35" y="140" width="8" height="22" rx="2" fill="rgba(255,255,255,.3)"/>
+          <rect x="29" y="146" width="22" height="8" rx="2" fill="rgba(255,255,255,.3)"/>
+          <!-- SL/SR buttons left -->
+          <rect x="6" y="108" width="5" height="30" rx="2" fill="rgba(255,255,255,.5)"/>
+          <!-- Screenshot button -->
+          <rect x="38" y="175" width="14" height="10" rx="2" fill="rgba(255,255,255,.2)"/>
+
+          <!-- Main Console Body -->
+          <rect x="82" y="30" width="216" height="220" rx="12" fill="#1a1a2e"/>
+          <rect x="86" y="34" width="208" height="212" rx="10" fill="#0f0f20"/>
+          <!-- Screen -->
+          <rect x="92" y="48" width="196" height="184" rx="8" fill="#0a0a18"/>
+          <!-- Screen content - movie scene glow -->
+          <rect x="92" y="48" width="196" height="184" rx="8" fill="url(#screenGrad)"/>
+          <!-- UI overlay on screen -->
+          <rect x="100" y="180" width="180" height="44" rx="4" fill="rgba(0,0,0,.6)"/>
+          <!-- Vote bars -->
+          <rect x="108" y="188" width="70" height="10" rx="3" fill="rgba(229,9,20,.7)"/>
+          <rect x="108" y="188" width="45" height="10" rx="3" fill="var(--red)"/>
+          <text x="183" y="197" fill="rgba(255,255,255,.6)" font-size="8" font-family="monospace">43%</text>
+          <rect x="108" y="204" width="70" height="10" rx="3" fill="rgba(107,78,174,.5)"/>
+          <rect x="108" y="204" width="55" height="10" rx="3" fill="var(--purple-light)"/>
+          <text x="183" y="213" fill="rgba(255,255,255,.6)" font-size="8" font-family="monospace">57%</text>
+          <!-- Labels -->
+          <text x="108" y="186" fill="rgba(255,255,255,.5)" font-size="7" font-family="monospace">A 逃跑</text>
+          <text x="108" y="202" fill="rgba(255,255,255,.5)" font-size="7" font-family="monospace">B 戰鬥</text>
+          <!-- Timer ring -->
+          <circle cx="250" cy="197" r="14" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="3"/>
+          <circle cx="250" cy="197" r="14" fill="none" stroke="var(--red)" stroke-width="3" stroke-dasharray="50 38" stroke-linecap="round" transform="rotate(-90 250 197)"/>
+          <text x="246" y="201" fill="white" font-size="9" font-family="monospace">7s</text>
+          <!-- Film scene hint -->
+          <rect x="92" y="48" width="196" height="125" rx="8" fill="rgba(20,10,40,.7)"/>
+          <text x="158" y="118" fill="rgba(229,9,20,.4)" font-size="42" font-family="serif" font-style="italic">?</text>
+          <!-- Home button -->
+          <circle cx="190" cy="241" r="8" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.15)" stroke-width="1"/>
+          <circle cx="190" cy="241" r="4" fill="rgba(255,255,255,.15)"/>
+
+          <!-- Right Joy-Con -->
+          <rect x="302" y="55" width="68" height="170" rx="28" fill="#1DB954"/>
+          <rect x="310" y="80" width="52" height="110" rx="6" fill="rgba(0,0,0,.25)"/>
+          <!-- Right stick -->
+          <circle cx="336" cy="145" r="12" fill="rgba(255,255,255,.15)"/>
+          <circle cx="336" cy="145" r="7" fill="rgba(255,255,255,.25)"/>
+          <!-- ABXY buttons -->
+          <circle cx="336" cy="108" r="6" fill="#1DB954" stroke="rgba(255,255,255,.4)" stroke-width="1.5"/>
+          <circle cx="348" cy="116" r="6" fill="#E4000F" stroke="rgba(255,255,255,.4)" stroke-width="1.5"/>
+          <circle cx="324" cy="116" r="6" fill="#FFD700" stroke="rgba(255,255,255,.4)" stroke-width="1.5"/>
+          <circle cx="336" cy="124" r="6" fill="#3B82F6" stroke="rgba(255,255,255,.4)" stroke-width="1.5"/>
+          <text x="333" y="111" fill="white" font-size="7" font-weight="bold">X</text>
+          <text x="345" y="119" fill="white" font-size="7" font-weight="bold">A</text>
+          <text x="321" y="119" fill="white" font-size="7" font-weight="bold">Y</text>
+          <text x="333" y="127" fill="white" font-size="7" font-weight="bold">B</text>
+          <!-- + button -->
+          <circle cx="330" cy="175" r="7" fill="rgba(255,255,255,.12)" stroke="rgba(255,255,255,.2)" stroke-width="1"/>
+          <text x="327" y="179" fill="rgba(255,255,255,.6)" font-size="10">+</text>
+          <!-- SR right -->
+          <rect x="369" y="108" width="5" height="30" rx="2" fill="rgba(255,255,255,.5)"/>
+
+          <!-- Gradient def -->
+          <defs>
+            <radialGradient id="screenGrad" cx="50%" cy="40%" r="60%">
+              <stop offset="0%" stop-color="rgba(59,31,110,.6)"/>
+              <stop offset="100%" stop-color="rgba(10,10,24,0)"/>
+            </radialGradient>
+          </defs>
+        </svg>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S1: INDUSTRY CHALLENGE ══ -->
+<div class="slide" id="s1">
+  <div class="slide-body">
+    <p class="eyebrow">01 — 業界的挑戰</p>
+    <h2 class="slide-title">The Industry <em>Challenge</em></h2>
+    <p class="slide-lead">我們正活在人類史上影音內容最豐沛的時代，卻也是「一起看電視」體驗最貧乏的時代。串流讓觀看更自由，卻讓共同觀看更孤獨。</p>
+
+    <div class="three-col" style="margin-bottom:1.8rem;">
+      <div class="card">
+        <div class="card-num">01</div>
+        <h3>📺 被動觀看的結構性困境</h3>
+        <p>現代串流設計的核心邏輯是「個人化推薦」，本質上是一個人的體驗。一家人或朋友聚在一起看影片，仍是最原始的「一個人握遙控器，其他人被動跟隨」模式。共同觀看的參與感幾乎為零，爭論看什麼的時間往往比看片的時間還長。</p>
+      </div>
+      <div class="card">
+        <div class="card-num">02</div>
+        <h3>🎮 遊戲產業崛起搶走螢幕時間</h3>
+        <p>全球遊戲產業年收入已突破 2,000 億美元，超越電影與音樂市場的總和。Nintendo Switch 全球銷量突破 1.46 億台，其「合作遊玩、客廳娛樂」的定位與串流影音形成直接競爭。Netflix 的最大競爭對手已不是 Disney+，而是 Fortnite 與 Minecraft。</p>
+      </div>
+      <div class="card">
+        <div class="card-num">03</div>
+        <h3>✨ 互動敘事的市場已被驗證</h3>
+        <p>Netflix 自製的《黑鏡：潘達斯奈基》於 2018 年上線，引發全球熱議，吸引超過 1,500 萬個獨立觀看行為，觀眾平均花費 90 分鐘探索不同結局——是一般影集的 1.5 倍。市場對「互動敘事」有真實需求，但技術與體驗設計從未被完整實現。</p>
+      </div>
+    </div>
+
+    <div class="stat-row">
+      <div><div class="stat-num">$200B+</div><div class="stat-label">全球遊戲產業年收入<br>已超越電影與音樂總和</div></div>
+      <div><div class="stat-num">146M</div><div class="stat-label">Nintendo Switch<br>全球累計銷量（台）</div></div>
+      <div><div class="stat-num">15M</div><div class="stat-label">《潘達斯奈基》獨立<br>觀看行為數（Netflix）</div></div>
+      <div><div class="stat-num">270M+</div><div class="stat-label">Netflix 全球<br>付費訂閱用戶數</div></div>
+    </div>
+
+    <div class="two-col">
+      <div class="callout">
+        <h4>🎯 這個提案要解決什麼？</h4>
+        <p>Story Quest 要打破「看影視 = 被動接收」的百年慣例，創造一種全新的「<strong style="color:#ff8080">共同互動觀看</strong>」體驗——讓沙發上的每一個人都握著 Joy-Con，用手上的選擇決定螢幕裡的故事走向。看影集變成一起玩遊戲，遊戲的舞台是一部真正的電影。</p>
+      </div>
+      <div class="callout green">
+        <h4>💰 潛在商業機會</h4>
+        <p>對 Netflix：差異化訂閱方案（Story Quest Premium 加價方案）、降低用戶流失率、吸引遊戲族群回流。對 Nintendo：Switch 擴展至「家庭娛樂中心」定位、新的內容生態、硬體銷量拉升。對整體市場：開創「互動影視」新品類，建立先行者品牌優勢。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S2: PROBLEM STATEMENT ══ -->
+<div class="slide" id="s2">
+  <div class="slide-body">
+    <p class="eyebrow">02 — 清晰的問題陳述</p>
+    <h2 class="slide-title">目標受眾與<em>痛點分析</em></h2>
+    <p class="slide-lead">我們鎖定三類在「共同觀看」這件事上有真實痛點的用戶族群，他們各有不同動機，卻指向同一個核心需求：我也想參與故事。</p>
+
+    <div class="three-col" style="margin-bottom:1.8rem;">
+      <div class="card">
+        <p class="tag">TARGET AUDIENCE A</p>
+        <h3>👨‍👩‍👧‍👦 家庭用戶（3–5 人同住）</h3>
+        <p>週末或假日有「全家一起看電視」的慣例，但大人想看劇、小孩想打電動，兩件事幾乎不可能同時發生。家長希望有一個可以讓全家共同參與、年齡層兼容的娛樂形式，而不是各自滑手機。Nintendo Switch 的家庭友善形象在這個族群有極高信任度。</p>
+      </div>
+      <div class="card">
+        <p class="tag">TARGET AUDIENCE B</p>
+        <h3>🎮 Switch 玩家 (18–35 歲)</h3>
+        <p>已擁有 Nintendo Switch，有固定的遊戲習慣，同時也是 Netflix 訂閱用戶。他們在「要玩遊戲還是要看影集」之間常常選擇遊戲，因為遊戲有互動性。如果影集也能有互動性，他們有很高的嘗試意願，且本身已是雙平台忠實用戶。</p>
+      </div>
+      <div class="card">
+        <p class="tag">TARGET AUDIENCE C</p>
+        <h3>🎉 社交聚會族群（朋友同住或聚會）</h3>
+        <p>大學生宿舍、朋友聚餐後、情侶在家——「要看什麼」的決策成本極高，往往花 15–20 分鐘瀏覽還沒決定。他們需要的不只是內容，而是一個「大家都能參與、有共同話題」的娛樂形式，就像桌遊解決了「我們今晚幹嘛」的問題。</p>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div>
+        <p class="section-hed">核心痛點（按嚴重程度排序）</p>
+        <div class="pain-item">
+          <span class="pain-icon">🎯</span>
+          <p><strong>被動旁觀，毫無參與感：</strong>多人觀看時，只有拿遙控器的人有「選擇權」，其他人只是觀眾中的觀眾。沒有參與感的體驗很容易讓人分心滑手機。</p>
+        </div>
+        <div class="pain-item">
+          <span class="pain-icon">⏱️</span>
+          <p><strong>決策成本高，「看什麼」耗掉娛樂時間：</strong>Netflix 用戶平均每次花 18 分鐘瀏覽才找到想看的內容。多人決策時這個時間倍增，且往往以「算了，看你決定」收場。</p>
+        </div>
+        <div class="pain-item">
+          <span class="pain-icon">🔀</span>
+          <p><strong>遊戲與影視無法共存，螢幕爭奪戰：</strong>有人想玩 Switch，有人想看 Netflix，共用一台電視的家庭每天都在上演這場爭奪。兩個品牌從未嘗試過在同一螢幕上合作。</p>
+        </div>
+        <div class="pain-item">
+          <span class="pain-icon">😴</span>
+          <p><strong>長時間單向影視內容讓注意力渙散：</strong>研究顯示現代人在螢幕前平均注意力持續時間僅 8–12 分鐘。被動觀看難以維持高投入，互動設計強迫保持專注。</p>
+        </div>
+        <div class="pain-item">
+          <span class="pain-icon">💬</span>
+          <p><strong>缺乏共同話題與記憶點：</strong>一起看完一部影集，每個人感受不同，卻沒有「共同決策」的共享記憶。Story Quest 讓「那次我們投票讓角色逃跑結果出了鬼門」成為可以回味的共同故事。</p>
+        </div>
+      </div>
+      <div class="val-box">
+        <h3>如何驗證這些痛點真實存在，而非自我想像？</h3>
+        <div class="val-methods">
+          <div class="val-m">
+            <h4>📊 Netflix 官方數據引用</h4>
+            <p>《黑鏡：潘達斯奈基》1,500 萬觀看數與 90 分鐘平均互動時長，是互動影視需求最有力的市場驗證，來自平台自身數據。</p>
+          </div>
+          <div class="val-m">
+            <h4>🔬 用戶行為研究</h4>
+            <p>引用 Nielsen 與 Deloitte 的「共同觀看行為」調查數據，量化多人觀看時的決策摩擦與滿意度落差，用外部研究佐證痛點規模。</p>
+          </div>
+          <div class="val-m">
+            <h4>🗣️ 焦點團體訪談（20 人）</h4>
+            <p>招募家庭用戶、Switch 玩家與大學生各一組，進行「模擬共同觀看」與「模擬 Story Quest 試玩」，記錄情緒反應與行為差異。</p>
+          </div>
+          <div class="val-m">
+            <h4>🎮 競品使用者分析</h4>
+            <p>分析 Jackbox Games（派對遊戲）、《Among Us》等「客廳社交遊戲」的成功模式，驗證「多人互動娛樂」是有大眾基礎的成熟需求，而非利基市場。</p>
+          </div>
+          <div class="val-m">
+            <h4>📱 社群聲量分析</h4>
+            <p>監測 Reddit、PTT、Dcard 上「一起看 Netflix 好無聊」、「看什麼討論到吵架」等關鍵字聲量，量化痛點的情緒強度與討論規模。</p>
+          </div>
+          <div class="val-m">
+            <h4>🕹️ Concept Test 概念測試</h4>
+            <p>設計高保真 Story Quest 體驗原型影片（非真實產品），對 50 名目標受眾進行概念測試，蒐集「付費意願」與「推薦意願」評分。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S3: PRODUCT VISION ══ -->
+<div class="slide" id="s3">
+  <div class="slide-body">
+    <p class="eyebrow">03 — 產品介紹 · 願景</p>
+    <h2 class="slide-title">產品願景與<em>核心亮點</em></h2>
+
+    <div class="vision-quote">
+      「Story Quest 不是一款遊戲，也不是一部影集——它是第一個讓你和身邊的人一起，用雙手決定故事結局的體驗。」
+    </div>
+
+    <div class="two-col">
+      <div>
+        <p class="section-hed">三大核心體驗模式</p>
+        <div class="scenario">
+          <span class="scenario-icon">🗳️</span>
+          <div>
+            <h4>民主投票模式（Vote Mode）</h4>
+            <p>劇情關鍵節點出現時，螢幕出現倒數計時與選項。每位觀眾用 Joy-Con 按鍵投票，票數即時顯示在螢幕上，多數票決定劇情走向。讓每個人都有發言權，讓每一票都有重量。家庭討論、朋友爭辯的過程本身就是娛樂。</p>
+          </div>
+        </div>
+        <div class="scenario">
+          <span class="scenario-icon">🧩</span>
+          <div>
+            <h4>謎題解鎖模式（Puzzle Mode）</h4>
+            <p>劇情推進前，觀眾需要合力解開嵌入故事的謎題（密碼、邏輯題、記憶遊戲）。解題成功才能繼續劇情，失敗則觸發不同的故事支線。把影集看成一個需要合作通關的任務，強化共同目標感。</p>
+          </div>
+        </div>
+        <div class="scenario">
+          <span class="scenario-icon">🌿</span>
+          <div>
+            <h4>多重結局模式（Branch Mode）</h4>
+            <p>整集共有 3–5 個重大選擇點，不同選擇組合導向真正不同的故事結局，而非表面分叉後匯流。觀眾第二次觀看時選擇不同路線，發現全新的場景與角色弧線，驅動重複觀看行為。</p>
+          </div>
+        </div>
+      </div>
+      <div>
+        <p class="section-hed">四大產品核心亮點</p>
+        <div class="callout" style="margin-bottom:.9rem;">
+          <h4>亮點 1｜零學習成本，拿起就玩</h4>
+          <p>不需要下載額外 App，不需要遊戲技術，Joy-Con 的 A/B/X/Y 按鈕對應螢幕選項，5 歲小孩和 70 歲阿公都能立刻上手。參與門檻是整個體驗中最關鍵的設計決策。</p>
+        </div>
+        <div class="callout" style="margin-bottom:.9rem;">
+          <h4>亮點 2｜陀螺儀 × 動作互動</h4>
+          <p>Joy-Con 內建陀螺儀與動作感應，部分互動場景設計成「揮動 Joy-Con」完成動作（如：揮劍、投擲、搖晃），讓身體參與敘事，製造難忘的共同記憶點。</p>
+        </div>
+        <div class="callout" style="margin-bottom:.9rem;">
+          <h4>亮點 3｜觀看紀錄 × 成就系統</h4>
+          <p>每次觀看的選擇被記錄，形成「你的故事足跡」。解鎖特定結局組合可以獲得成就徽章，促進多次重看與社群分享（「你解鎖了幾個結局？」）。</p>
+        </div>
+        <div class="callout green">
+          <h4>亮點 4｜IP 無縫授權擴展</h4>
+          <p>Story Quest 是一個體驗框架，不是單一內容。《怪奇物語》互動版、《魷魚遊戲》投票生死關、《One Piece》冒險選擇——每個 Netflix 頂級 IP 都可以成為 Story Quest 的內容，建立持續性內容生態。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S4: MVP ══ -->
+<div class="slide" id="s4">
+  <div class="slide-body">
+    <p class="eyebrow">03 — 產品介紹 · MVP</p>
+    <h2 class="slide-title">最小可行產品<em>（MVP）</em></h2>
+    <p class="slide-lead">MVP 核心假設：「當觀眾可以用 Joy-Con 參與劇情決策，共同觀看的投入程度與滿意度會顯著高於傳統被動觀看，且有意願支付溢價。」</p>
+
+    <div style="overflow-x:auto; margin-bottom:1.8rem;">
+      <table class="feature-table">
+        <thead>
+          <tr>
+            <th>功能模組</th>
+            <th>具體實施</th>
+            <th>對應痛點</th>
+            <th>驗證假設</th>
+            <th>狀態</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="feat-name">🗳️ Joy-Con 投票系統</span></td>
+            <td>劇情關鍵節點出現多選題，每位玩家用 Joy-Con 按鍵在倒數時間內投票，螢幕即時顯示票數，多數決定劇情走向。支援 1–4 支 Joy-Con 同時連線。</td>
+            <td><span class="feat-pain">被動旁觀無參與感 / 多人決策摩擦高</span></td>
+            <td>「有投票權讓人更專注且更滿足」</td>
+            <td><span class="badge core">MVP 核心</span></td>
+          </tr>
+          <tr>
+            <td><span class="feat-name">🌿 雙線劇情分叉</span></td>
+            <td>每集設計至少 3 個重大選擇點，導向 2 條以上真實差異化的劇情路線（非假分叉），每條路線有獨立場景、對白與結局。MVP 先完成 1 部試驗性互動影集（45 分鐘，3 個分叉點，4 種結局）。</td>
+            <td><span class="feat-pain">缺乏重複觀看誘因 / 影視體驗無差異化</span></td>
+            <td>「真實多結局驅動重複觀看」</td>
+            <td><span class="badge core">MVP 核心</span></td>
+          </tr>
+          <tr>
+            <td><span class="feat-name">⏱️ 即時倒數計時介面</span></td>
+            <td>選擇出現時，螢幕角落顯示倒數計時器（10–15 秒），製造緊迫感。時間結束前票數最高的選項自動勝出，無人投票則隨機決定，不打斷觀看節奏。</td>
+            <td><span class="feat-pain">決策拖延耗時 / 注意力渙散</span></td>
+            <td>「時間壓力強化投入感與刺激感」</td>
+            <td><span class="badge core">MVP 核心</span></td>
+          </tr>
+          <tr>
+            <td><span class="feat-name">🧩 簡易謎題互動</span></td>
+            <td>每集置入 1–2 個輕量謎題關卡（如：用 Joy-Con 搖桿拼圖、按特定按鍵序列解鎖密碼），完成後繼續劇情。難度設計讓 8 歲以上皆可完成，保持全齡包容。</td>
+            <td><span class="feat-pain">缺乏合作互動機制 / 年齡層落差造成脫節</span></td>
+            <td>「合作解謎強化家庭共同參與感」</td>
+            <td><span class="badge core">MVP 核心</span></td>
+          </tr>
+          <tr>
+            <td><span class="feat-name">📋 結局解鎖追蹤卡</span></td>
+            <td>觀看結束後顯示「本次結局：XXXX」與已解鎖 / 未解鎖的結局地圖，鼓勵再次觀看探索其他路線。介面設計參考成就系統，有清晰的收集進度感。</td>
+            <td><span class="feat-pain">缺乏重複觀看誘因 / 無共同記憶點</span></td>
+            <td>「進度可視化驅動二次觀看率」</td>
+            <td><span class="badge core">MVP 核心</span></td>
+          </tr>
+          <tr>
+            <td><span class="feat-name">🎯 單人探索模式</span></td>
+            <td>沒有朋友或家人時，單人也可以遊玩——此時進入「個人選擇模式」，無投票機制，選項更豐富（最多 4 個），讓單獨觀看也有互動體驗的完整性。</td>
+            <td><span class="feat-pain">產品依賴多人情境，單人體驗受限</span></td>
+            <td>「單人模式擴大可用場景，降低使用門檻」</td>
+            <td><span class="badge core">MVP 核心</span></td>
+          </tr>
+          <tr>
+            <td><span class="feat-name">🏆 Joy-Con 動作挑戰</span></td>
+            <td>特定劇情高潮場景加入動作互動（如揮動 Joy-Con 決定戰鬥結果），讓身體參與故事，製造最高記憶點。每集僅設計 1 個，保持稀缺感與驚喜性。</td>
+            <td><span class="feat-pain">純按鍵互動不夠沉浸 / 缺乏難忘記憶點</span></td>
+            <td>「肢體互動創造社交話題性」</td>
+            <td><span class="badge p2">Phase 2</span></td>
+          </tr>
+          <tr>
+            <td><span class="feat-name">📱 手機端第二螢幕</span></td>
+            <td>無 Joy-Con 的觀眾可用手機掃碼加入投票，確保每位觀眾都能參與，不因缺乏硬體而被排除。擴大參與包容性，也是向非 Switch 用戶推廣的入口。</td>
+            <td><span class="feat-pain">Joy-Con 數量不足導致部分人被排除</span></td>
+            <td>「跨裝置參與降低硬體依賴門檻」</td>
+            <td><span class="badge p2">Phase 2</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout">
+      <h4>MVP 的刻意範疇限制</h4>
+      <p>MVP 階段<strong style="color:#ff8080">僅</strong>製作 1 部原創互動影集（非改編既有 IP，降低授權複雜度）、<strong style="color:#ff8080">僅</strong>支援電視端 Nintendo Switch 對接（不開放手機或電腦），先在最單純的場景驗證核心體驗假設，數據到位後再議多平台擴展。</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S5: DIFFERENTIATION ══ -->
+<div class="slide" id="s5">
+  <div class="slide-body">
+    <p class="eyebrow">03 — 產品介紹 · 差異化</p>
+    <h2 class="slide-title">市場定位與<em>差異化</em></h2>
+    <p class="slide-lead">橫軸：娛樂體驗的社交互動程度（從個人獨享到多人共創）｜縱軸：敘事沉浸深度（從輕度娛樂到完整故事投入）</p>
+
+    <div class="two-col" style="align-items:start; margin-bottom:1.8rem;">
+      <div class="map-container">
+        <div class="map-axis-h"></div>
+        <div class="map-axis-v"></div>
+        <span class="map-lbl" style="top:.5rem;left:50%;transform:translateX(-50%)">高敘事沉浸</span>
+        <span class="map-lbl" style="bottom:.5rem;left:50%;transform:translateX(-50%)">低敘事沉浸</span>
+        <span class="map-lbl" style="left:.4rem;top:50%;transform:translateY(-50%) rotate(-90deg)">個人</span>
+        <span class="map-lbl" style="right:.4rem;top:50%;transform:translateY(-50%) rotate(90deg)">多人互動</span>
+
+        <!-- Story Quest -->
+        <div class="map-dot hero" style="left:74%;top:24%;"></div>
+        <div class="dot-lbl hero" style="left:74%;top:24%;">Story Quest ★</div>
+
+        <!-- Netflix solo -->
+        <div class="map-dot other" style="left:18%;top:22%;"></div>
+        <div class="dot-lbl" style="left:18%;top:22%;">Netflix（一般）</div>
+
+        <!-- Bandersnatch -->
+        <div class="map-dot other" style="left:24%;top:28%;"></div>
+        <div class="dot-lbl" style="left:24%;top:28%;">潘達斯奈基</div>
+
+        <!-- Switch games -->
+        <div class="map-dot other" style="left:72%;top:68%;"></div>
+        <div class="dot-lbl" style="left:72%;top:68%;">Switch 合作遊戲</div>
+
+        <!-- Jackbox -->
+        <div class="map-dot other" style="left:80%;top:72%;"></div>
+        <div class="dot-lbl" style="left:80%;top:72%;">Jackbox Games</div>
+
+        <!-- Cinemas -->
+        <div class="map-dot other" style="left:22%;top:18%;"></div>
+        <div class="dot-lbl" style="left:22%;top:18%;">電影院</div>
+
+        <!-- D&D -->
+        <div class="map-dot other" style="left:82%;top:28%;"></div>
+        <div class="dot-lbl" style="left:82%;top:28%;">TRPG / D&D</div>
+
+        <!-- Family TV -->
+        <div class="map-dot other" style="left:40%;top:55%;"></div>
+        <div class="dot-lbl" style="left:40%;top:55%;">家庭電視節目</div>
+      </div>
+
+      <div>
+        <p class="section-hed">為什麼只有我們佔據這個象限？</p>
+        <div class="pain-item" style="border-left-color:var(--red);margin-bottom:.6rem;">
+          <span class="pain-icon">🚀</span>
+          <p><strong>高敘事 × 高互動的市場空白：</strong>TRPG（龍與地下城）有高敘事沉浸與高互動，但學習成本極高、需要主持人。Story Quest 把這個體驗民主化——不需要任何準備，只要一台 Switch。</p>
+        </div>
+        <div class="pain-item" style="border-left-color:var(--red);margin-bottom:.6rem;">
+          <span class="pain-icon">🛡️</span>
+          <p><strong>硬體生態的強大護城河：</strong>Netflix 的內容庫 + Nintendo 的 Joy-Con 硬體生態，是任何單一平台或新創在 3 年內無法複製的組合壁壘。Disney+ 沒有硬體；Xbox Game Pass 沒有家庭友善沉浸敘事 IP。</p>
+        </div>
+        <div class="pain-item" style="border-left-color:var(--red);margin-bottom:.6rem;">
+          <span class="pain-icon">🌀</span>
+          <p><strong>兩個品牌的信任背書同時生效：</strong>Netflix = 我信任的影視品質；Nintendo = 全家都能玩的安全娛樂。雙重品牌信任讓家長對「讓孩子一起玩」的決策摩擦趨近於零。</p>
+        </div>
+
+        <div class="divrow"></div>
+        <p class="section-hed" style="margin-bottom:.7rem;">功能差異化比較</p>
+        <table class="cmp-table">
+          <tr>
+            <th>功能</th><th>Story Quest</th><th>潘達斯奈基</th><th>Switch 遊戲</th><th>一般影集</th>
+          </tr>
+          <tr><td>多人即時投票</td><td class="cmp-yes">✓</td><td class="cmp-no">—</td><td class="cmp-part">△</td><td class="cmp-no">—</td></tr>
+          <tr><td>真實敘事沉浸</td><td class="cmp-yes">✓</td><td class="cmp-yes">✓</td><td class="cmp-part">△</td><td class="cmp-yes">✓</td></tr>
+          <tr><td>Joy-Con 動作互動</td><td class="cmp-yes">✓</td><td class="cmp-no">—</td><td class="cmp-yes">✓</td><td class="cmp-no">—</td></tr>
+          <tr><td>全齡包容（3+）</td><td class="cmp-yes">✓</td><td class="cmp-no">—</td><td class="cmp-part">△</td><td class="cmp-part">△</td></tr>
+          <tr><td>多結局重複觀看</td><td class="cmp-yes">✓</td><td class="cmp-yes">✓</td><td class="cmp-no">—</td><td class="cmp-no">—</td></tr>
+          <tr><td>零學習成本</td><td class="cmp-yes">✓</td><td class="cmp-yes">✓</td><td class="cmp-no">—</td><td class="cmp-yes">✓</td></tr>
+          <tr><td>合作解謎機制</td><td class="cmp-yes">✓</td><td class="cmp-no">—</td><td class="cmp-part">△</td><td class="cmp-no">—</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S6: TESTING ══ -->
+<div class="slide" id="s6">
+  <div class="slide-body">
+    <p class="eyebrow">03 — 產品介紹 · 測試計劃</p>
+    <h2 class="slide-title">如何測試市場對 MVP 的<em>反應</em>？</h2>
+    <p class="slide-lead">我們採用「封閉 Beta → 公開試玩 → 數據分析」三階段驗證策略，確保在全規模上線前，每個核心假設都有真實用戶行為數據支撐。</p>
+
+    <div class="two-col" style="margin-bottom:1.8rem;">
+      <div>
+        <p class="section-hed">測試階段規劃</p>
+        <div class="timeline">
+          <div class="tl-item">
+            <div class="tl-time">Month 1</div>
+            <div class="tl-line"></div>
+            <div class="tl-content">
+              <h4>內部原型製作與壓力測試</h4>
+              <p>完成 15 分鐘互動試玩原型（含 2 個投票點、1 個謎題），在 Netflix / Nintendo 內部員工中進行第一輪可用性測試（Usability Test），收集 UX 問題清單。</p>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-time">Month 2</div>
+            <div class="tl-line"></div>
+            <div class="tl-content">
+              <h4>封閉 Beta 測試（300 個家庭）</h4>
+              <p>邀請 100 個家庭用戶、100 個 Switch 玩家、100 個大學生社交族群，提供完整 MVP 版本（45 分鐘完整互動影集）免費體驗，換取詳細問卷與行為數據授權。</p>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-time">Month 3</div>
+            <div class="tl-line"></div>
+            <div class="tl-content">
+              <h4>焦點團體深度訪談</h4>
+              <p>從 Beta 測試者中招募各族群 10 人進行焦點團體，深度探討「哪個互動時刻最令你興奮 / 最令你困惑」，提供質性數據補充量化指標的盲點。</p>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-time">Month 4</div>
+            <div class="tl-line"></div>
+            <div class="tl-content">
+              <h4>付費意願測試（Willingness to Pay）</h4>
+              <p>對 Beta 測試者進行定價實驗：分別詢問願意為 Story Quest 每月額外支付 NT$50 / NT$99 / NT$149 的比例，找到最佳定價區間。同步測試「單集購買」vs「訂閱制」的偏好。</p>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-time">Month 5–6</div>
+            <div class="tl-line"></div>
+            <div class="tl-content">
+              <h4>公開試玩活動 × 社群擴散測試</h4>
+              <p>在台北、東京、洛杉磯三個城市舉辦 Story Quest 快閃體驗活動，邀請媒體、KOL 與一般民眾參與，測量社群自然擴散速度、媒體曝光量與後續官網預約人數。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <p class="section-hed">Joy-Con 互動設計驗證項目</p>
+        <div class="controller-demo">
+          <h4>🎮 四大互動機制的個別驗證</h4>
+          <div style="margin-bottom:.9rem;">
+            <div class="ctrl-row">
+              <div class="ctrl-btn"><span class="key">A/B/X/Y</span><span>選項投票</span></div>
+              <div class="ctrl-btn"><span class="key">搖桿</span><span>角色移動</span></div>
+              <div class="ctrl-btn"><span class="key">陀螺儀</span><span>動作揮擊</span></div>
+            </div>
+            <p class="ctrl-desc">每個互動機制分別追蹤「首次反應時間」（越快代表越直覺）與「正確率」（越高代表設計越清晰），找出最有效的互動設計組合。</p>
+          </div>
+          <div style="border-top:1px solid rgba(229,9,20,.1);padding-top:.9rem;">
+            <h4 style="font-size:.85rem;color:var(--white);margin-bottom:.6rem;">🔢 量化追蹤指標</h4>
+            <p class="ctrl-desc" style="margin-bottom:.5rem;">• 每個選擇點的投票參與率（多少人按了鍵）</p>
+            <p class="ctrl-desc" style="margin-bottom:.5rem;">• 倒數時間內投票 vs. 未投票比率</p>
+            <p class="ctrl-desc" style="margin-bottom:.5rem;">• 謎題解題成功率（反映難度適切性）</p>
+            <p class="ctrl-desc" style="margin-bottom:.5rem;">• 同一段影片重複觀看次數（多結局探索行為）</p>
+            <p class="ctrl-desc">• 觀看中途退出率（每個選擇點前後對比）</p>
+          </div>
+        </div>
+
+        <div class="divrow"></div>
+        <div class="three-col" style="gap:.7rem;">
+          <div class="callout" style="margin-bottom:0;">
+            <h4>量化數據</h4>
+            <p>行為追蹤數據（按鍵、時間、退出點）+ 問卷評分（滿意度、推薦意願 NPS）+ 付費意願調查</p>
+          </div>
+          <div class="callout purple" style="margin-bottom:0;">
+            <h4>質化數據</h4>
+            <p>焦點團體錄影分析、情緒反應觀察、「最難忘時刻」開放式問答、推薦語蒐集</p>
+          </div>
+          <div class="callout green" style="margin-bottom:0;">
+            <h4>社群數據</h4>
+            <p>快閃活動 UGC 數量、#StoryQuest 標籤聲量、媒體報導數、官網預約轉換率</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S7: SUCCESS METRICS ══ -->
+<div class="slide" id="s7">
+  <div class="slide-body">
+    <p class="eyebrow">03 — 產品介紹 · 成功指標</p>
+    <h2 class="slide-title">如何界定 MVP<em>是否成功？</em></h2>
+    <p class="slide-lead">成功指標分為三層：「必達門檻」決定是否繼續投資；「目標指標」決定規模擴展速度；「夢想指標」代表產品真正引爆市場的訊號。</p>
+
+    <div style="margin-bottom:1.6rem;">
+      <p class="section-hed" style="margin-bottom:1rem;">必達門檻（Go / No-Go，全部必須通過）</p>
+      <div class="four-col">
+        <div class="kpi-card">
+          <div class="kpi-num">≥ 75%</div>
+          <div class="kpi-label">投票參與率<br><span style="font-size:.65rem;opacity:.6;">選擇點出現時，≥75% 的在場觀眾按下按鍵</span></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-num">NPS 50+</div>
+          <div class="kpi-label">體驗淨推薦值<br><span style="font-size:.65rem;opacity:.6;">消費者科技產品的優秀門檻</span></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-num">≥ 60%</div>
+          <div class="kpi-label">二次觀看率<br><span style="font-size:.65rem;opacity:.6;">看完後想再看其他結局的比例</span></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-num">≥ 40%</div>
+          <div class="kpi-label">付費升級意願<br><span style="font-size:.65rem;opacity:.6;">Beta 測試者中願意支付溢價訂閱的比例</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="two-col" style="margin-bottom:1.6rem;">
+      <div class="metric-box">
+        <h3>目標指標（決定擴展規模與速度）</h3>
+        <div class="metric-item"><p><strong>平均觀看時長 +40%：</strong>Story Quest 內容的平均觀看完成率與停留時間，顯著高於同等長度的傳統 Netflix 內容。</p></div>
+        <div class="metric-item"><p><strong>家庭帳戶轉換率 +25%：</strong>接觸 Story Quest 後，個人訂閱用戶升級為家庭方案的比例，較對照組高出 25% 以上。</p></div>
+        <div class="metric-item"><p><strong>社群 UGC 自發生成 ≥ 500 篇：</strong>Beta 測試期間（無廣告投放），用戶自發在社群平台分享體驗的貼文數量。</p></div>
+        <div class="metric-item"><p><strong>媒體報導覆蓋 3 大洲：</strong>快閃活動後一個月內，獲得亞洲、北美、歐洲各至少一個主流科技媒體的深度報導。</p></div>
+        <div class="metric-item"><p><strong>Switch 硬體詢問度提升：</strong>活動期間 Nintendo 官網搜尋量或門市詢問量，可追蹤到因 Story Quest 帶動的顯著增幅。</p></div>
+      </div>
+      <div class="metric-box">
+        <h3>夢想指標（代表市場引爆訊號）</h3>
+        <div class="metric-item"><p><strong>「Story Quest 效應」自發討論：</strong>社群上出現「今晚要玩 Story Quest」成為固定的聚會動詞，就像「今晚來打 Jackbox」的使用方式，代表品牌已進入日常語言。</p></div>
+        <div class="metric-item"><p><strong>IP 合作方主動洽詢：</strong>《怪奇物語》、《魷魚遊戲》等熱門 IP 的製作團隊主動聯繫 Story Quest 合作，代表創作端認可這個格式的敘事可能性。</p></div>
+        <div class="metric-item"><p><strong>流失率下降 15%：</strong>Netflix 訂閱流失率在導入 Story Quest 的市場，出現可歸因的顯著下降——這是最具商業價值的訊號，直接影響 Netflix 的 LTV（用戶終身價值）。</p></div>
+        <div class="metric-item"><p><strong>競爭對手跟進：</strong>Disney+、Apple TV+ 或 Amazon Prime 在 18 個月內宣布類似互動影視計劃——被抄代表真的打到了市場痛點。</p></div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="callout">
+        <h4>成功後的規模擴展路線圖</h4>
+        <p><strong style="color:#ff8080">Year 1：</strong>製作 3 部不同類型 Story Quest 互動影集（驚悚、奇幻、喜劇），驗證跨類型適用性，於 Netflix 特定方案內上線。<br><strong style="color:#ff8080">Year 2：</strong>與 Netflix 頂級 IP 合作（怪奇物語互動特別集），推出 Story Quest Premium 訂閱方案；Nintendo 推出 Story Quest 主題 Joy-Con 限定版。<br><strong style="color:#ff8080">Year 3：</strong>開放第三方內容製作商 API 接入，建立 Story Quest 創作者生態，讓獨立影視製作人也能製作互動內容。</p>
+      </div>
+      <div class="callout green">
+        <h4>結語：我們在創造一個新品類</h4>
+        <p>電影誕生於 1895 年，電視誕生於 1927 年，串流誕生於 2007 年。每一次媒介革命都創造了全新的人類體驗方式。Story Quest 不是現有產品的微幅改良，而是一次真正的格式創新——讓「一起觀看」從集體被動，變成集體創作。我們相信，這是下一個十年娛樂體驗演化的方向，而我們要第一個站在那裡。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const LABELS = ['封面','產業挑戰','受眾 & 痛點','產品願景','MVP 功能','市場差異化','測試計劃','成功指標'];
+const total = 8;
+let cur = 0;
+
+function buildTabs() {
+  const bar = document.getElementById('tabBar');
+  LABELS.forEach((lbl, i) => {
+    const b = document.createElement('button');
+    b.className = 'tab-btn' + (i === 0 ? ' active' : '');
+    b.textContent = lbl;
+    b.onclick = () => goTo(i);
+    bar.appendChild(b);
+  });
+}
+
+function goTo(next) {
+  if (next < 0 || next >= total) return;
+  const slides = document.querySelectorAll('.slide');
+  const tabs   = document.querySelectorAll('.tab-btn');
+  slides[cur].classList.remove('active');
+  if (next > cur) slides[cur].classList.add('exit-left');
+  const prev = cur; cur = next;
+  setTimeout(() => slides[prev].classList.remove('exit-left'), 440);
+  slides[cur].classList.add('active');
+  slides[cur].scrollTop = 0;
+  tabs.forEach((t, i) => t.classList.toggle('active', i === cur));
+  document.getElementById('btnPrev').disabled = cur === 0;
+  document.getElementById('btnNext').disabled = cur === total - 1;
+  document.getElementById('pFill').style.width = (cur / (total - 1) * 100) + '%';
+  document.getElementById('sCount').textContent = (cur + 1) + ' / ' + total;
+}
+function go(dir) { goTo(cur + dir); }
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') go(1);
+  if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   go(-1);
+});
+buildTabs(); goTo(0);
+</script>
+</body>
+</html>
